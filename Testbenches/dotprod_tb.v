@@ -2,8 +2,8 @@
 
 module dot_prod_tb #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS = 30);
   reg clk, rst;
-  reg [NUM_OF_PIXELS*XLEN_PIXEL-1 : 0] x_test; 
-  reg [NUM_OF_PIXELS*XLEN_PIXEL-1 : 0] x_sv;
+  reg [XLEN_PIXEL-1 : 0] x_test; 
+  reg [XLEN_PIXEL-1 : 0] x_sv;
   wire [4*XLEN_PIXEL -1 : 0] mac_out;
   integer i;
   
