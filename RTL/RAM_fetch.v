@@ -1,37 +1,46 @@
 `timescale 1ns / 1ps
 
-module RAM_fetch #(parameter XLEN_PIXEL=8, NUM_OF_PIXELS = 900, ADDR_WIDTH = 10)
-    (input clk, input re, input we, input [XLEN_PIXEL-1:0] data_load, 
-    output reg  [XLEN_PIXEL-1:0] data_out);
-    reg [ADDR_WIDTH-1:0] addr;
+module RAM_fetch #(parameter XLEN_PIXEL=8, NUM_OF_PIXELS = 4, ADDR_WIDTH = 10)
+    (input clk, input re, input we, stall_MEM, input [XLEN_PIXEL-1:0] data_load, 
+    output reg [XLEN_PIXEL-1:0] data_out);
+
+    reg [ADDR_WIDTH-1:0] addr_read;
+    reg [ADDR_WIDTH-1:0] addr_write;
     wire [XLEN_PIXEL-1:0] do;
     integer i,j;
-    block_ram mem_module(.clk(clk), .we(we), .re(re), .addr(addr), .di(data_load), 
-                        .do(do));
+
+    reg stall_check;
+    always @(*) begin
+    stall_check <= stall_MEM;
+    end
+
+    block_ram mem_module(.clk(clk), .we(we), .re(re), .stall_MEM(stall_MEM), .addr_read(addr_read), .addr_write(addr_write), .di(data_load), .do(do));
     initial begin
         i = 0;
         j = 0;
+        addr_read=0;
+        addr_write=0;
         data_out = 0;
     end
     //read the block ram 
     always@(negedge clk && re) begin
-        if(i< NUM_OF_PIXELS) begin
-            addr = i;
+        if(i< NUM_OF_PIXELS && !(stall_check)) begin
+            addr_read = i;
             data_out = do[XLEN_PIXEL-1 : 0];
-            $display("%d = i and %d = addr data_out = %d do = %d", i,addr, data_out, do);
+            //$display("%d = i, %d = addr_read, %d = data_out , %d =do", i, addr_read, data_out, do);
             i = i+1;
         end
     end
     //write data to block ram 
-    always@(data_load) begin
-        if (j<NUM_OF_PIXELS && we) begin
-            addr = j;
-            $display("%d = j and %d = addr %d = data_load", j,addr,data_load);
+    always@(posedge clk && stall_check) begin
+        if (j < NUM_OF_PIXELS && we && stall_check) begin
+            addr_write = j;
+            //$display("%d = j, %d = addr , %d = data_load", j,addr_write,data_load);
             j = j+1;
         end
         else begin
-            addr = 0; 
-            $display("memory is full or write is not enabled (j = %d)", j);
+            addr_write = 0; 
+            //$display("memory is full or write is not enabled (j = %d)", j);
         end
     end
 
