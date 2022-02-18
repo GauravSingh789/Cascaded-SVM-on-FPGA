@@ -18,19 +18,21 @@ import pandas as pd
 """## Importing the dataset"""
 
 dataset_mnist = pd.read_csv('mnist_train.csv')
-X_train = dataset_mnist.iloc[:, 1:].values
+X_train = dataset_mnist.iloc[:,1:].values
 y_train = dataset_mnist.iloc[:,0].values
-print(X_train.shape)
-print(y_train)
 dataset_mnist_test = pd.read_csv('mnist_test.csv')
 X_test = dataset_mnist_test.iloc[:,1:]. values
 y_test = dataset_mnist_test.iloc[:,0].values
-print(X_test.shape)
-print(y_test)
 
-print(X_train)
+#checking whether the input has been loaded correctly
+X_tr_sum = np.sum(X_train)
+X_tr_sum_has_nan = np.isnan(X_tr_sum)
+print(X_tr_sum_has_nan)
 
-print(X_test)
+array_sum = np.sum(X_test)
+array_has_nan = np.isnan(array_sum)
+print(array_has_nan)
+
 
 """## Training the Kernel SVM model on the Training set
 
@@ -41,7 +43,21 @@ from sklearn.svm import SVC
 classifier = SVC(kernel = 'poly', degree=2, coef0=1) 
 classifier.fit(X_train, y_train)
 
+"""Saving the Support Vectors"""
+
+support_vect = classifier.support_vectors_
 print(classifier.support_vectors_.shape)
+support_vect_int = support_vect. astype(int)
+np.savetxt('support_vectors.csv', support_vect_int, delimiter=',')
+print(support_vect_int)
+
+"""Getting the values of the product (alphai*yi) and b used in the SVM decision fuction"""
+
+product = classifier.dual_coef_
+b = classifier.intercept_
+np.savetxt('product_alphay.csv', product, delimiter=',')
+print(product)
+print(b)
 
 """## Predicting the Test set results"""
 
