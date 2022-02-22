@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
-module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 100)
+module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 10)
 (input clk, rst, en,
 output y_class);
 
-wire re, we, stall_MEM;
+wire re, we, stall_MEM, decision_funct_en;
 // Variables we are storing in BRAM
 wire [XLEN_PIXEL-1:0] sv_load1, sv_load2;
 wire [XLEN_PIXEL-1 :0] x_test; 
@@ -23,7 +23,7 @@ wire [XLEN_PIXEL-1 :0] x_sv10;
 wire [XLEN_PIXEL-1 :0] x_testdata_fetched; 
 
 // Instantiate control module
-mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .sv_load1(sv_load1), .sv_load2(sv_load2), .x_test(x_test));
+mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en), .sv_load1(sv_load1), .sv_load2(sv_load2), .x_test(x_test));
 
 // Load support vectors from RAM
 
@@ -68,9 +68,9 @@ wire [0:4*XLEN_PIXEL-1] kernel_out_sv10;
     dot_prod dspslice10(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv10), .mac_out(kernel_out_sv10));
 
 //Shifting values across registers
-reg [0:4*XLEN_PIXEL*NUM_OF_PIXELS-1] kernel_out;
+reg [(4*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out;
 
-always @(posedge clk or posedge rst && en) begin 
+always @(posedge clk) begin //or posedge rst && en) begin 
     /*if (rst) begin
         kernel_out_sv10 <= 0;
     end
@@ -87,18 +87,34 @@ always @(posedge clk or posedge rst && en) begin
             kernel_out_sv10[0:4*XLEN_PIXEL-1] <= kernel_out_sv9[0:4*XLEN_PIXEL-1];
         end
     end */
-    kernel_out[0:4*XLEN_PIXEL-1] <= kernel_out_sv1[0:4*XLEN_PIXEL-1];
-    kernel_out[4*XLEN_PIXEL:4*2*XLEN_PIXEL-1]   <= kernel_out_sv2[0:4*XLEN_PIXEL-1];
-    kernel_out[4*2*XLEN_PIXEL:4*3*XLEN_PIXEL-1] <= kernel_out_sv3[0:4*XLEN_PIXEL-1];
-    kernel_out[4*3*XLEN_PIXEL:4*4*XLEN_PIXEL-1] <= kernel_out_sv4[0:4*XLEN_PIXEL-1];
-    kernel_out[4*4*XLEN_PIXEL:4*5*XLEN_PIXEL-1] <= kernel_out_sv5[0:4*XLEN_PIXEL-1];
-    kernel_out[4*5*XLEN_PIXEL:4*6*XLEN_PIXEL-1] <= kernel_out_sv6[0:4*XLEN_PIXEL-1];
-    kernel_out[4*6*XLEN_PIXEL:4*7*XLEN_PIXEL-1] <= kernel_out_sv7[0:4*XLEN_PIXEL-1];
-    kernel_out[4*7*XLEN_PIXEL:4*8*XLEN_PIXEL-1] <= kernel_out_sv8[0:4*XLEN_PIXEL-1];
-    kernel_out[4*8*XLEN_PIXEL:4*9*XLEN_PIXEL-1] <= kernel_out_sv9[0:4*XLEN_PIXEL-1];
+    kernel_out[4*XLEN_PIXEL-1:0] <= kernel_out_sv1[0:4*XLEN_PIXEL-1];
+    kernel_out[4*2*XLEN_PIXEL-1:4*XLEN_PIXEL]   <= kernel_out_sv2[0:4*XLEN_PIXEL-1];
+    kernel_out[4*3*XLEN_PIXEL-1:4*2*XLEN_PIXEL] <= kernel_out_sv3[0:4*XLEN_PIXEL-1];
+    kernel_out[4*4*XLEN_PIXEL-1:4*3*XLEN_PIXEL] <= kernel_out_sv4[0:4*XLEN_PIXEL-1];
+    kernel_out[4*5*XLEN_PIXEL-1:4*4*XLEN_PIXEL] <= kernel_out_sv5[0:4*XLEN_PIXEL-1];
+    kernel_out[4*6*XLEN_PIXEL-1:4*5*XLEN_PIXEL] <= kernel_out_sv6[0:4*XLEN_PIXEL-1];
+    kernel_out[4*7*XLEN_PIXEL-1:4*6*XLEN_PIXEL] <= kernel_out_sv7[0:4*XLEN_PIXEL-1];
+    kernel_out[4*8*XLEN_PIXEL-1:4*7*XLEN_PIXEL] <= kernel_out_sv8[0:4*XLEN_PIXEL-1];
+    kernel_out[4*9*XLEN_PIXEL-1:4*8*XLEN_PIXEL] <= kernel_out_sv9[0:4*XLEN_PIXEL-1];
+    kernel_out[4*10*XLEN_PIXEL-1:4*9*XLEN_PIXEL] <= kernel_out_sv10[0:4*XLEN_PIXEL-1];
 
     //$display("Big reg out = %d", kernel_out);
 end
-assign y_class = 1; // Temp dummy line to run the tb
+//-------------------------------Decision Function Module--------------------------------- 
+reg [XLEN_PIXEL-1:0] product_load;
+wire[XLEN_PIXEL-1:0] product_out;
+reg [(2*XLEN_PIXEL)-1:0] b = 16'b10000000_00000001;
+reg [(2*XLEN_PIXEL)-1:0] product;
+//Product values for testing 
+initial begin 
+    product = 16'b00000000_00000000;
+end
+always@(posedge clk) begin
+    product <= product+1;
+end
+
+RAM_fetch product_fetch(.clk(clk), .re(re), .we(re), .stall_MEM(!decision_funct_en), .data_load(product_load), .data_out(product_out));
+decision_funct decision_funct_module(.clk(clk), .kernel_out(kernel_out), .decision_funct_en(decision_funct_en), 
+            .product(product), .b(b), .y_class(y_class));
 
 endmodule
