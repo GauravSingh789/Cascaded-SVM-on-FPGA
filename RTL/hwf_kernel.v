@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
-module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4)
-( input clk, rst, stall_MEM, sum_index,
+module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, parameter ITERATOR = 8)
+( input clk, rst, stall_MEM,
   input signed [XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 
   input [XLEN_PIXEL-1:0] x_sv,
@@ -14,6 +14,7 @@ reg [XLEN_PIXEL-1:0] x_sv_arr;
 wire gamma;
 reg stall_check;
 reg c_done;
+integer sum_index = ITERATOR;
 reg di;
 
 reg signed [XLEN_PIXEL-1:0] Ei, //Ei in the HWF expression
@@ -72,6 +73,9 @@ end
  //----- Bi part of block diagram -----------------------------------
 always @(posedge clk) begin
     //Arithmetic shift in Bi by i
+    if(sum_index) begin
     Bi_next = di ? (Bi - (Bi >>> sum_index)) : Bi - 0; // Mux and subtractor
+    sum_index = sum_index - 1;
+    end
 end
 endmodule
