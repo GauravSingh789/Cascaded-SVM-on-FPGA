@@ -5,8 +5,8 @@ module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, param
   input signed [XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 
   input [XLEN_PIXEL-1:0] x_sv,
-  output reg signed [XLEN_PIXEL-1: 0] Ei_next,
-  output reg signed [XLEN_PIXEL-1:0] Bi_next);
+  output reg [XLEN_PIXEL-1: 0] Ei_next,
+  output reg [XLEN_PIXEL-1:0] Bi_next);
 
 reg [XLEN_PIXEL-1:0] x_test_arr;
 reg [XLEN_PIXEL-1:0] x_sv_arr;
@@ -14,14 +14,15 @@ reg [XLEN_PIXEL-1:0] x_sv_arr;
 wire gamma;
 reg stall_check;
 reg c_done;
-integer sum_index = ITERATOR;
+integer sum_index = 0;
 reg di;
 
-reg signed [XLEN_PIXEL-1:0] Ei, //Ei in the HWF expression
-reg signed [XLEN_PIXEL-1:0] norm_temp;
-reg signed [XLEN_PIXEL-1:0] temp_sub1; //Temporary register to store subtraction result for checking sign in norm calc
-reg signed [XLEN_PIXEL-1:0] temp_sub2;
-reg signed [XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
+reg [XLEN_PIXEL-1:0] Ei; //Ei in the HWF expression , 8.8 format size
+reg [2*XLEN_PIXEL-1:0] Ei_FixedPoint;
+reg [XLEN_PIXEL-1:0] norm_temp;
+reg [XLEN_PIXEL-1:0] temp_sub1; //Temporary register to store subtraction result for checking sign in norm calc
+reg [XLEN_PIXEL-1:0] temp_sub2;
+reg [XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
 
 integer k;
 initial begin
@@ -61,21 +62,22 @@ always @(posedge c_done) begin
 end
 
 //--- Ei part of the block diagram-----------------------------------
+log_mod log_module_hwf (.clk(clk), .i(sum_index), .log_val(log_val)); //Instantiating log module
 always @(posedge clk) begin
-    temp_sub2 <= Ei - log_val;
-    di <= temp_sub2[0] ? 1 : 0;
+    Ei_FixedPoint <= {Ei, 8'b00000000};
+    temp_sub2 <= Ei_FixedPoint - log_val;
+    di <= temp_sub2[XLEN_PIXEL-1] ? 1 : 0;
     Ei_next <= di ? temp_sub2 : Ei;
 end
-
 //-------------Computing Bi/beta : TO DO-----------------------------
 
 
  //----- Bi part of block diagram -----------------------------------
 always @(posedge clk) begin
     //Arithmetic shift in Bi by i
-    if(sum_index) begin
+    if(sum_index < ITERATOR) begin
     Bi_next = di ? (Bi - (Bi >>> sum_index)) : Bi - 0; // Mux and subtractor
-    sum_index = sum_index - 1;
+    sum_index = sum_index + 1;
     end
 end
 endmodule
