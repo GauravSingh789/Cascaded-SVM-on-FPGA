@@ -1,12 +1,11 @@
 `timescale 1ns / 1ps
 
-module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, parameter ITERATOR = 8)
+module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, parameter NUM_OF_SV=87, parameter ITERATOR = 8)
 ( input clk, rst, stall_MEM,
-  input signed [XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
+  input [2*XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 
   input [XLEN_PIXEL-1:0] x_sv,
-  output reg [XLEN_PIXEL-1: 0] Ei_next,
-  output reg [XLEN_PIXEL-1:0] Bi_next);
+  output reg [2*XLEN_PIXEL-1: 0] hwf_out);
 
 reg [XLEN_PIXEL-1:0] x_test_arr;
 reg [XLEN_PIXEL-1:0] x_sv_arr;
@@ -14,15 +13,18 @@ reg [XLEN_PIXEL-1:0] x_sv_arr;
 wire gamma;
 reg stall_check;
 reg c_done;
+reg hwf_done;
 integer sum_index = 0;
 reg di;
 
 reg [XLEN_PIXEL-1:0] Ei; //Ei in the HWF expression , 8.8 format size
 reg [2*XLEN_PIXEL-1:0] Ei_FixedPoint;
 reg [XLEN_PIXEL-1:0] norm_temp;
-reg [XLEN_PIXEL-1:0] temp_sub1; //Temporary register to store subtraction result for checking sign in norm calc
+reg [XLEN_PIXEL-1:0] temp_sub; //Temporary register to store subtraction result for checking sign in norm calc
 reg [XLEN_PIXEL-1:0] temp_sub2;
 reg [XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
+reg [2*XLEN_PIXEL-1:0] Ei_next;
+reg [2*XLEN_PIXEL-1:0] Bi_next;
 
 integer k;
 initial begin
@@ -69,9 +71,6 @@ always @(posedge clk) begin
     di <= temp_sub2[XLEN_PIXEL-1] ? 1 : 0;
     Ei_next <= di ? temp_sub2 : Ei;
 end
-//-------------Computing Bi/beta : TO DO-----------------------------
-
-
  //----- Bi part of block diagram -----------------------------------
 always @(posedge clk) begin
     //Arithmetic shift in Bi by i
@@ -79,5 +78,11 @@ always @(posedge clk) begin
     Bi_next = di ? (Bi - (Bi >>> sum_index)) : Bi - 0; // Mux and subtractor
     sum_index = sum_index + 1;
     end
+    hwf_done <= (j == ITERATOR) ? 1 : 0;
+    j <= hwf_done ? j : j + 1;
 end
+always@(posedge hwf_done) begin
+    hwf_out = Bi_next;
+end
+
 endmodule
