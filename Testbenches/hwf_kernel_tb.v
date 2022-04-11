@@ -26,8 +26,8 @@ stall_MEM = 1;
 #20
 rst = 0;
 stall_MEM = 0;
-x_test = 8'b00000000;
-x_sv = 8'b00000001;
+x_test = 8'b00000001;
+x_sv = 8'b00000000;
 
 for (i=0; i<NUM_OF_PIXELS; i=i+1)
 begin

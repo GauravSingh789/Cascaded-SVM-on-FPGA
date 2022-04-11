@@ -5,7 +5,7 @@ module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =10, para
   input [2*XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 
   input [XLEN_PIXEL-1:0] x_sv,
-  output reg [2*XLEN_PIXEL-1: 0] hwf_out);
+  output [2*XLEN_PIXEL-1: 0] hwf_out);
 
 reg [XLEN_PIXEL-1:0] x_test_arr;
 reg [XLEN_PIXEL-1:0] x_sv_arr;
@@ -21,7 +21,7 @@ reg [XLEN_PIXEL-1:0] Ei; //Ei in the HWF expression , 8.8 format size
 reg [2*XLEN_PIXEL-1:0] Ei_FixedPoint;
 reg [XLEN_PIXEL-1:0] norm_temp;
 reg [XLEN_PIXEL-1:0] temp_sub; //Temporary register to store subtraction result for checking sign in norm calc
-reg [2*XLEN_PIXEL-1:0] temp_sub2;
+wire [2*XLEN_PIXEL-1:0] temp_sub2;
 wire [2*XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
 reg [2*XLEN_PIXEL-1:0] Ei_next;
 reg [2*XLEN_PIXEL-1:0] Bi_next;
@@ -49,6 +49,8 @@ always @(posedge clk or posedge rst) begin
     norm_temp <=0; 
     temp_sub <= 0;
     c_done <= 0;
+    j<=0;
+    hwf_done<=0;
     end
     if(!(stall_check) && !(c_done)) begin
         temp_sub = (x_sv_arr >= x_test_arr) ? (x_sv_arr - x_test_arr) : (x_test_arr - x_sv_arr);
@@ -71,25 +73,28 @@ end
 
 //--- Ei part of the block diagram-----------------------------------
 log_mod log_module_hwf (.clk(clk), .i(sum_index), .log_val(log_val)); //Instantiating log module
-always @(posedge clk) begin
+fixed_pt_sub sub(.a(Ei_FixedPoint), .b(log_val), .out(temp_sub2));
+always @(posedge clk && c_done && !(hwf_done)) begin
     Ei_FixedPoint <= {Ei, 8'b00000000};
-    temp_sub2 <= Ei_FixedPoint - log_val;
     $display("Ei_fixedpoint=%d, logval=%d, temp_sub2=%d",Ei_FixedPoint, log_val,temp_sub2);
-    di <= temp_sub2[XLEN_PIXEL-1] ? 1 : 0;
-    Ei_next <= di ? temp_sub2 : Ei;
+    di <= temp_sub2[2*XLEN_PIXEL-1] ? 1 : 0;
+    Ei_next <= di ? temp_sub2 : Ei_FixedPoint;
 end
  //----- Bi part of block diagram -----------------------------------
-always @(posedge clk) begin
+always @(posedge clk && c_done && !(hwf_done)) begin
     //Arithmetic shift in Bi by i
     if(sum_index < ITERATOR) begin
-    Bi_next = di ? (Bi - (Bi >>> sum_index)) : Bi - 0; // Mux and subtractor
+    Bi_next = di ? (Bi - (Bi >>> sum_index)) : (Bi - 0); // Mux and subtractor
     sum_index = sum_index + 1;
+    $display("sum_index=%d Bi=%d Bi_next=%d di=%d",sum_index,Bi,Bi_next,di);
+    j = hwf_done ? j : j + 1;
+    hwf_done = (j == ITERATOR) ? 1 : 0;
+    $display("hwf_done=%d j=%d",hwf_done,j);
     end
-    hwf_done <= (j == ITERATOR) ? 1 : 0;
-    j <= hwf_done ? j : j + 1;
 end
-always@(posedge hwf_done) begin
-    hwf_out = Bi_next;
-end
+//always@(hwf_done) begin
+//    $display("helo im last loop hwf_done=%d j=%d",hwf_done,j);
+    assign hwf_out = hwf_done ? Bi_next : 8'b01000101;
+//end
 
 endmodule
