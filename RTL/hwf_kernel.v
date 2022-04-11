@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, parameter NUM_OF_SV=87, parameter ITERATOR = 8)
+module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =10, parameter NUM_OF_SV=87, parameter ITERATOR = 8)
 ( input clk, rst, stall_MEM,
   input [2*XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 
@@ -10,7 +10,7 @@ module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =4, param
 reg [XLEN_PIXEL-1:0] x_test_arr;
 reg [XLEN_PIXEL-1:0] x_sv_arr;
 
-wire gamma;
+wire gamma; 
 reg stall_check;
 reg c_done;
 reg hwf_done;
@@ -21,12 +21,12 @@ reg [XLEN_PIXEL-1:0] Ei; //Ei in the HWF expression , 8.8 format size
 reg [2*XLEN_PIXEL-1:0] Ei_FixedPoint;
 reg [XLEN_PIXEL-1:0] norm_temp;
 reg [XLEN_PIXEL-1:0] temp_sub; //Temporary register to store subtraction result for checking sign in norm calc
-reg [XLEN_PIXEL-1:0] temp_sub2;
-reg [XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
+reg [2*XLEN_PIXEL-1:0] temp_sub2;
+wire [2*XLEN_PIXEL-1:0] log_val; // Dummy log value register for now
 reg [2*XLEN_PIXEL-1:0] Ei_next;
 reg [2*XLEN_PIXEL-1:0] Bi_next;
 
-integer k;
+integer k,j;
 initial begin
     norm_temp = 0;
     k=0;
@@ -46,21 +46,27 @@ always @(posedge clk or posedge rst) begin
     if (rst) begin
     Ei <= 0;
     k <= 0;
+    norm_temp <=0; 
+    temp_sub <= 0;
     c_done <= 0;
     end
-    if(!(stall_check)) begin
-        temp_sub = x_sv_arr - x_test_arr;
+    if(!(stall_check) && !(c_done)) begin
+        temp_sub = (x_sv_arr >= x_test_arr) ? (x_sv_arr - x_test_arr) : (x_test_arr - x_sv_arr);
+        norm_temp <= norm_temp + temp_sub;
+        /*temp_sub = x_sv_arr - x_test_arr;
         if(temp_sub[XLEN_PIXEL-1] == 1'b0) begin
             norm_temp <= norm_temp + temp_sub;
         end else begin
             norm_temp <= norm_temp - temp_sub;
-        end
+        end*/
+        $display("x_sv = %d,x_test =%d, temp_sub = %d, norm_temp = %d, c_done=%d, k=%d",x_sv_arr, x_test_arr, temp_sub, norm_temp, c_done, k);
         c_done <= (k == NUM_OF_PIXELS) ? 1 : 0;
         k <= c_done ? k : k + 1;
     end
 end
 always @(posedge c_done) begin
-    Ei <= gamma*norm_temp;
+    Ei = gamma*norm_temp;
+    $display("Ei=%d gamma=%d",Ei,gamma);
 end
 
 //--- Ei part of the block diagram-----------------------------------
@@ -68,6 +74,7 @@ log_mod log_module_hwf (.clk(clk), .i(sum_index), .log_val(log_val)); //Instanti
 always @(posedge clk) begin
     Ei_FixedPoint <= {Ei, 8'b00000000};
     temp_sub2 <= Ei_FixedPoint - log_val;
+    $display("Ei_fixedpoint=%d, logval=%d, temp_sub2=%d",Ei_FixedPoint, log_val,temp_sub2);
     di <= temp_sub2[XLEN_PIXEL-1] ? 1 : 0;
     Ei_next <= di ? temp_sub2 : Ei;
 end
