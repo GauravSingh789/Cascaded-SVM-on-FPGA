@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =10, parameter NUM_OF_SV=87, parameter ITERATOR = 8)
+module hwf_kernel #(parameter XLEN_PIXEL = 8 , parameter NUM_OF_PIXELS =10, parameter NUM_OF_SV=10, parameter ITERATOR = 8)
 ( input clk, rst, stall_MEM,
   input [2*XLEN_PIXEL-1:0] Bi, //Bi in the hwf expression
   input [XLEN_PIXEL-1:0] x_test, 

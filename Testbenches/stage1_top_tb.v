@@ -1,11 +1,11 @@
 `timescale 1ns / 1ps
 
 
-module stage1_top_tb #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 10, parameter NUM_OF_SV = 4);
+module stage1_top_tb #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 10);
   reg clk, rst, en;
   wire y_class;
 
-stage1_top uut (.clk(clk), .rst(rst), .en(en), .y_class(y_class));  
+stage1_top_hwf uut (.clk(clk), .rst(rst), .en(en), .y_class(y_class));  
 
 initial begin
     rst=1;

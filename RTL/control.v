@@ -2,7 +2,7 @@
 
 module mem_control #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 10)
 (input clk, rst, en,
-output reg re, we, stall_MEM, decision_funct_en,
+output reg re, we, stall_MEM, 
 output reg [XLEN_PIXEL-1:0] sv_load1, sv_load2, x_test);
 
 reg [15:0] comp_count;
@@ -13,14 +13,13 @@ initial begin
     we =1;
     comp_count=0;
     stall_MEM =0;
-    decision_funct_en = 0;
 
     sv_load1 = 13;
     sv_load2 = 17;
     x_test = 10;
 end
-//reg [XLEN_PIXEL-1:0] sv_load1;
-//reg [XLEN_PIXEL-1:0] sv_load2;
+reg [XLEN_PIXEL-1:0] sv_load1;
+reg [XLEN_PIXEL-1:0] sv_load2;
 
 //------------ SV Values for time being------------
 always @(posedge clk) begin
@@ -57,14 +56,11 @@ always @(posedge clk)begin
     we <=0;
     stall_MEM <=0;
     end
-    if(comp_count > (NUM_OF_PIXELS*NUM_OF_SV + NUM_OF_PIXELS + 10)) begin 
-        decision_funct_en <= 1; //10 is the offset
-    end
     $display("stall_MEM = %d", stall_MEM);
-    $display("decision_funct_en = %d", decision_funct_en);
 end
 
 always @(posedge clk) begin
+
         comp_count <= comp_count + 1;
         $display("comp_count = %d",comp_count);
 end
