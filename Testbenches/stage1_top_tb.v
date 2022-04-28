@@ -8,12 +8,15 @@ module stage1_top_tb #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, pa
 stage1_top_hwf uut (.clk(clk), .rst(rst), .en(en), .y_class(y_class));  
 
 initial begin
+    rst =0;
+    #5
     rst=1;
     clk=0;
     en=0;
-    #5
+    #10
     rst=0;
     en=1;
+    //$readmemb("alpha_bin.txt", alpha_values);
   end
 
   always #5 clk = ~clk;

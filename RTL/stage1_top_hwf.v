@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 module stage1_top_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 10)
-(input clk, rst, en,
+(input clk, rst, en, 
 output y_class);
 
 wire re, we, stall_MEM, decision_funct_en;
@@ -45,7 +45,7 @@ reg [2*XLEN_PIXEL-1:0] Bi; //Bi for HWF compuation
 reg [6:0] alpha_values_counter;
 
 initial begin
-    $readmemb("alpha_bin.txt", alpha_values);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.sim/sim_1/behav/xsim/alpha_bin.data", alpha_values, 0, 86);
     alpha_values_counter=7'b0000000;
 end
 always @(posedge clk) begin

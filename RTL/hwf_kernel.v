@@ -42,7 +42,7 @@ always @(*) begin
     //$display("x_sv_arr = %d", x_sv_arr);
 end
 //--------------- Computing Ei-----------------------------------
-always @(posedge clk or posedge rst) begin
+always @(posedge clk) begin
     if (rst) begin
     Ei <= 0;
     k <= 0;
@@ -52,8 +52,9 @@ always @(posedge clk or posedge rst) begin
     j<=0;
     hwf_done<=0;
     end
+
     if(!(stall_check) && !(c_done)) begin
-        temp_sub = (x_sv_arr >= x_test_arr) ? (x_sv_arr - x_test_arr) : (x_test_arr - x_sv_arr);
+        temp_sub <= (x_sv_arr >= x_test_arr) ? (x_sv_arr - x_test_arr) : (x_test_arr - x_sv_arr);
         norm_temp <= norm_temp + temp_sub;
         /*temp_sub = x_sv_arr - x_test_arr;
         if(temp_sub[XLEN_PIXEL-1] == 1'b0) begin
@@ -94,7 +95,7 @@ always @(posedge clk && c_done && !(hwf_done)) begin
 end
 //always@(hwf_done) begin
 //    $display("helo im last loop hwf_done=%d j=%d",hwf_done,j);
-    assign hwf_out = hwf_done ? Bi_next : 8'b01000101;
+    assign hwf_out = hwf_done ? Bi_next : 8'b11111111;
 //end
 
 endmodule
