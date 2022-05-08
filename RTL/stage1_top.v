@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 4, parameter NUM_OF_SV = 10)
+module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 87)
 (input clk, rst, en,
 output y_class);
 
@@ -9,111 +9,53 @@ wire re, we, stall_MEM, decision_funct_en;
 wire [XLEN_PIXEL-1:0] sv_load1, sv_load2;
 wire [XLEN_PIXEL-1 :0] x_test; 
 
-//Fetched stuff from BRAM
-wire [XLEN_PIXEL-1 :0] x_sv1;
-wire [XLEN_PIXEL-1 :0] x_sv2;
-wire [XLEN_PIXEL-1 :0] x_sv3;
-wire [XLEN_PIXEL-1 :0] x_sv4;
-wire [XLEN_PIXEL-1 :0] x_sv5;
-wire [XLEN_PIXEL-1 :0] x_sv6;
-wire [XLEN_PIXEL-1 :0] x_sv7;
-wire [XLEN_PIXEL-1 :0] x_sv8;
-wire [XLEN_PIXEL-1 :0] x_sv9;
-wire [XLEN_PIXEL-1 :0] x_sv10;
-wire [XLEN_PIXEL-1 :0] x_testdata_fetched; 
-
 // Instantiate control module
-mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en), .sv_load1(sv_load1), .sv_load2(sv_load2), .x_test(x_test));
+mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en), .x_test(x_test));
 
 // Load support vectors from RAM
-
-RAM_fetch x_sv_fetch1 (.clk(clk), .re(re), .we(re), .stall_MEM(stall_MEM), .data_load(sv_load1), .data_out(x_sv1));
-RAM_fetch x_sv_fetch2 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv2));
-RAM_fetch x_sv_fetch3 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv3));
-RAM_fetch x_sv_fetch4 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv4));
-RAM_fetch x_sv_fetch5 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv5));
-RAM_fetch x_sv_fetch6 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv6));
-RAM_fetch x_sv_fetch7 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv7));
-RAM_fetch x_sv_fetch8 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv8));
-RAM_fetch x_sv_fetch9 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv9));
-RAM_fetch x_sv_fetch10 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(sv_load2), .data_out(x_sv10));
-
-// Load test vector from RAM
-RAM_fetch x_test_fetch1 (.clk(clk), .re(re), .we(we), .stall_MEM(stall_MEM), .data_load(x_test), .data_out(x_testdata_fetched));
-
-// Output from each Dsp/Mac slice
-
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv1;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv2;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv3;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv4;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv5;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv6;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv7;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv8;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv9;
-wire [0:4*XLEN_PIXEL-1] kernel_out_sv10;
-
-//Instantiate dot_prod logic. In each cycle, dot prod for one pixel computed
- 
-    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv1), .mac_out(kernel_out_sv1));
-    dot_prod dspslice2(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv2), .mac_out(kernel_out_sv2));
-    dot_prod dspslice3(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv3), .mac_out(kernel_out_sv3));
-    dot_prod dspslice4(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv4), .mac_out(kernel_out_sv4));
-    dot_prod dspslice5(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv5), .mac_out(kernel_out_sv5));
-    dot_prod dspslice6(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv6), .mac_out(kernel_out_sv6));
-    dot_prod dspslice7(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv7), .mac_out(kernel_out_sv7));
-    dot_prod dspslice8(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv8), .mac_out(kernel_out_sv8));
-    dot_prod dspslice9(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv9), .mac_out(kernel_out_sv9));
-    dot_prod dspslice10(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_testdata_fetched), .x_sv(x_sv10), .mac_out(kernel_out_sv10));
-
-//Shifting values across registers
-reg [(4*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out;
-
-always @(posedge clk) begin //or posedge rst && en) begin 
-    /*if (rst) begin
-        kernel_out_sv10 <= 0;
-    end
-    for (i=0; i < NUM_OF_SV; i=i+1) begin
-        if (comp_count >= (NUM_OF_PIXELS*NUM_OF_SV + 25)) begin
-            kernel_out_sv2[0:4*XLEN_PIXEL-1] <= kernel_out_sv1[0:4*XLEN_PIXEL-1];
-            kernel_out_sv3[0:4*XLEN_PIXEL-1] <= kernel_out_sv2[0:4*XLEN_PIXEL-1];
-            kernel_out_sv4[0:4*XLEN_PIXEL-1] <= kernel_out_sv3[0:4*XLEN_PIXEL-1];
-            kernel_out_sv5[0:4*XLEN_PIXEL-1] <= kernel_out_sv4[0:4*XLEN_PIXEL-1];
-            kernel_out_sv6[0:4*XLEN_PIXEL-1] <= kernel_out_sv5[0:4*XLEN_PIXEL-1];
-            kernel_out_sv7[0:4*XLEN_PIXEL-1] <= kernel_out_sv6[0:4*XLEN_PIXEL-1];
-            kernel_out_sv8[0:4*XLEN_PIXEL-1] <= kernel_out_sv7[0:4*XLEN_PIXEL-1];
-            kernel_out_sv9[0:4*XLEN_PIXEL-1] <= kernel_out_sv8[0:4*XLEN_PIXEL-1];
-            kernel_out_sv10[0:4*XLEN_PIXEL-1] <= kernel_out_sv9[0:4*XLEN_PIXEL-1];
-        end
-    end */
-    kernel_out[4*XLEN_PIXEL-1:0] <= kernel_out_sv1[0:4*XLEN_PIXEL-1];
-    kernel_out[4*2*XLEN_PIXEL-1:4*XLEN_PIXEL]   <= kernel_out_sv2[0:4*XLEN_PIXEL-1];
-    kernel_out[4*3*XLEN_PIXEL-1:4*2*XLEN_PIXEL] <= kernel_out_sv3[0:4*XLEN_PIXEL-1];
-    kernel_out[4*4*XLEN_PIXEL-1:4*3*XLEN_PIXEL] <= kernel_out_sv4[0:4*XLEN_PIXEL-1];
-    kernel_out[4*5*XLEN_PIXEL-1:4*4*XLEN_PIXEL] <= kernel_out_sv5[0:4*XLEN_PIXEL-1];
-    kernel_out[4*6*XLEN_PIXEL-1:4*5*XLEN_PIXEL] <= kernel_out_sv6[0:4*XLEN_PIXEL-1];
-    kernel_out[4*7*XLEN_PIXEL-1:4*6*XLEN_PIXEL] <= kernel_out_sv7[0:4*XLEN_PIXEL-1];
-    kernel_out[4*8*XLEN_PIXEL-1:4*7*XLEN_PIXEL] <= kernel_out_sv8[0:4*XLEN_PIXEL-1];
-    kernel_out[4*9*XLEN_PIXEL-1:4*8*XLEN_PIXEL] <= kernel_out_sv9[0:4*XLEN_PIXEL-1];
-    kernel_out[4*10*XLEN_PIXEL-1:4*9*XLEN_PIXEL] <= kernel_out_sv10[0:4*XLEN_PIXEL-1];
-
-    //$display("Big reg out = %d", kernel_out);
+reg [NUM_OF_PIXELS*XLEN_PIXEL-1:0] support_vectors [NUM_OF_SV-1:0];
+reg [4*XLEN_PIXEL-1:0] kernel_out_arr [NUM_OF_SV-1:0];
+reg [16:0] support_vectors_counter;
+integer i,j;
+initial begin
+    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/support_vect_bin_edited.data", support_vectors,0,86);
+    support_vectors_counter=17'b0_00000000_00000000;
+    //for(i=0;i<NUM_OF_SV-1;i=i+1) begin
+    //    $display("support_vectors=%b",support_vectors[i]);
+    //end
 end
+
+//Instantiating kernel modules for each support vector
+genvar c;
+generate for(c = 0; c < NUM_OF_SV; c = c + 1) begin
+    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .c(c), .x_test(x_test), .x_sv(support_vectors[c]), .mac_out(kernel_out[(c*5*XLEN_PIXEL) +: 5*XLEN_PIXEL]), .kat(kat_check));//kernel_out_arr[c]));//
+end endgenerate 
+
+//Main register containing output from all kernel modules
+wire [((5*XLEN_PIXEL*NUM_OF_SV)-1):0] kernel_out;
+
 //-------------------------------Decision Function Module--------------------------------- 
 reg [XLEN_PIXEL-1:0] product_load;
 wire[XLEN_PIXEL-1:0] product_out;
 reg [(2*XLEN_PIXEL)-1:0] b = 16'b10000000_00000001;
+reg [(2*XLEN_PIXEL)-1:0] product_arr [NUM_OF_SV-1:0];
 reg [(2*XLEN_PIXEL)-1:0] product;
-//Product values for testing 
-initial begin 
-    product = 16'b00000000_00000000;
-end
+integer row_count;
+
+//Product values
 always@(posedge clk) begin
-    product <= product+1;
+    if(row_count<NUM_OF_SV && decision_funct_en) begin
+        product = product_arr[row_count];
+        row_count = row_count+1;
+        //$display("product=%d row_count=%d", product, row_count); 
+    end
+end
+initial begin
+    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/alpha_bin.data",product_arr,0,86);
+    row_count = 0;
 end
 
-RAM_fetch product_fetch(.clk(clk), .re(re), .we(re), .stall_MEM(!decision_funct_en), .data_load(product_load), .data_out(product_out));
+//RAM_fetch product_fetch(.clk(clk), .re(re), .we(re), .stall_MEM(!decision_funct_en), .data_load(product_load), .data_out(product_out));
 decision_funct decision_funct_module(.clk(clk), .kernel_out(kernel_out), .decision_funct_en(decision_funct_en), 
             .product(product), .b(b), .y_class(y_class));
 
