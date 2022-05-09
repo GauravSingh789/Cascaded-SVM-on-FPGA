@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module decision_funct_hwf#(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS =784, parameter NUM_OF_SV = 10, parameter DECISION_FUNCT_SIZE = 24)
-(input clk, [(2*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out, input decision_funct_en, [(2*XLEN_PIXEL)-1:0] product, [(2*XLEN_PIXEL)-1:0] b, 
+(input clk, [(2*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out, input decision_funct_en, [(2*XLEN_PIXEL)-1:0] product, [(2*XLEN_PIXEL)-1:0] b,
 output reg y_class); 
 reg [2*XLEN_PIXEL-1:0] kernel_out_temp;   //product - 8.8, b - 8.8
 reg [DECISION_FUNCT_SIZE+XLEN_PIXEL-1:0] decision_funct_out_temp; //16.16 output from multiplier
@@ -26,7 +26,7 @@ always@(posedge clk) begin
         //    $display("i = %d", i);
             decision_funct_out_temp = decision_funct_out_temp + (kernel_out_temp*product[(2*XLEN_PIXEL)-2:0]); //8.8 * 8.8 = 16.16
             decision_funct_out_temp[DECISION_FUNCT_SIZE+XLEN_PIXEL-1] = kernel_out_temp[2*XLEN_PIXEL-1] ^ product[(2*XLEN_PIXEL)-1]; // Assigning aign bit to output
-            $display("kernel_out_temp=%h, decision_funct_out_temp=%h, product=%h", kernel_out_temp, decision_funct_out_temp, product);
+            //$display("kernel_out_temp=%h, decision_funct_out_temp=%h, product=%h", kernel_out_temp, decision_funct_out_temp, product);
         end
     end
 end 
@@ -40,8 +40,8 @@ always@(posedge clk) begin
         value_b = b[(2*XLEN_PIXEL)-2:0];
         value_out = decision_funct_out[DECISION_FUNCT_SIZE-2:0];
         comp <= value_temp > value_b;
-        $display("sign_b = %h, sign_out_temp = %h, sign_out=%h, value_out=%h, value_temp=%h, value_b=%h comp=%h",sign_b, sign_out_temp, sign_out, 
-                                                                value_out, value_temp, value_b, comp);
+        //$display("sign_b = %h, sign_out_temp = %h, sign_out=%h, value_out=%h, value_temp=%h, value_b=%h comp=%h",sign_b, sign_out_temp, sign_out, 
+        //                                                        value_out, value_temp, value_b, comp);
         if(sign_b^sign_out_temp==0) begin
             value_out = value_temp  +  value_b;
             sign_out = sign_out_temp;

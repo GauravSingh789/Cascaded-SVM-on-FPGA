@@ -1,12 +1,12 @@
 `timescale 1ns / 1ps
 
 (* use_dsp = "yes" *) module decision_funct #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS =784, parameter NUM_OF_SV = 87, parameter DECISION_FUNCT_SIZE = 56)
-(input clk, [(5*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out, input decision_funct_en, [(2*XLEN_PIXEL)-1:0] product, [(2*XLEN_PIXEL)-1:0] b, 
+(input clk, [(5*XLEN_PIXEL*NUM_OF_SV)-1:0] kernel_out, input decision_funct_en, [(2*XLEN_PIXEL)-1:0] product, [(2*XLEN_PIXEL)-1:0] b,
+output reg [DECISION_FUNCT_SIZE-1:0] decision_funct_out, //48.8 output after adding b
 output reg y_class); 
 
 reg [6*XLEN_PIXEL-1:0] kernel_out_temp;   //product - 8.8, b - 8.8
 reg [DECISION_FUNCT_SIZE+XLEN_PIXEL-1:0] decision_funct_out_temp; //48.16 output from multiplier
-reg [DECISION_FUNCT_SIZE-1:0] decision_funct_out; //48.8 output after adding b
 reg sign_b, sign_out_temp,sign_out, comp;
 reg [(2*XLEN_PIXEL)-2:0] value_b;
 reg [DECISION_FUNCT_SIZE-2:0] value_out;
@@ -28,8 +28,8 @@ always@(posedge clk) begin
                 //$display("dft=%b",decision_funct_out_temp);   
             end
             kernel_out_temp = {kernel_out[5*i*XLEN_PIXEL +: 5*XLEN_PIXEL],8'b00000000}; //part of kernel out in 40.8 format
-            $display("i = %d", i);
-            $display("dft=%b",decision_funct_out_temp);   
+            //$display("i = %d", i);
+            //$display("dft=%b",decision_funct_out_temp);   
             decision_funct_out_temp = decision_funct_out_temp + (kernel_out_temp*{1'b0,product[(2*XLEN_PIXEL)-2:0]}); //40.8 * 8.8 = 48.16
             decision_funct_out_temp[DECISION_FUNCT_SIZE+XLEN_PIXEL-1] = kernel_out_temp[6*XLEN_PIXEL-1] ^ product[(2*XLEN_PIXEL)-1]; // Assigning Sign bit to output
             $display("kernel_out_temp=%h, decision_funct_out_temp=%d, product=%h", kernel_out_temp, decision_funct_out_temp, product);

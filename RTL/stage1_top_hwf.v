@@ -1,13 +1,12 @@
 `timescale 1ns / 1ps
-module stage1_top_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10)
-(input clk, rst, en, 
+module stage1_top_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10, parameter DECISION_FUNCT_SIZE = 24)
+(input clk, rst, en, hwf_en,
+input wire [NUM_OF_PIXELS*XLEN_PIXEL-1:0] x_test,
 output y_class);
 
 wire re, we, stall_MEM, decision_funct_en;
-wire [XLEN_PIXEL-1:0] x_test;
 // Instantiate control module
-mem_control_hwf mem_control_inst (.clk(clk), .rst(rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en), 
-.x_test(x_test));
+mem_control_hwf mem_control_inst (.clk(clk), .rst(rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en));
 
 // -------Hardware Friendly Kernel----------------------------------------
 //Load alpha_values for HWF
@@ -16,7 +15,7 @@ reg [2*XLEN_PIXEL-1:0] Bi; //Bi for HWF compuation
 reg [6:0] alpha_values_counter;
 
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/alpha_hwf_bin.data", alpha_values, 0,9);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/alpha_hwf_bin.data", alpha_values, 0,9);
     alpha_values_counter=7'b0000000;
 end
 
@@ -33,7 +32,7 @@ end */
 reg [NUM_OF_PIXELS*XLEN_PIXEL-1:0] support_vectors [NUM_OF_SV-1:0];
 reg [16:0] support_vectors_counter;
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/support_vect_bin_hwf_edited.data", support_vectors, 0, 9);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/support_vect_bin_hwf_edited.data", support_vectors, 0, 9);
     support_vectors_counter=17'b0_00000000_00000000;
 end
 
@@ -41,7 +40,7 @@ genvar c;
 genvar i;
 generate for(c = 0; c < NUM_OF_SV; c = c + 1) begin
     for(i=0;i<NUM_OF_PIXELS;i=i+1) begin
-        hwf_kernel hwf_kernel_inst1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .Bi(alpha_values[c]), .x_test(x_test), .x_sv(support_vectors[c]), .hwf_out(hwf_kernel_out[(c*2*XLEN_PIXEL) +: 2*XLEN_PIXEL]), .c(c));
+        hwf_kernel hwf_kernel_inst1(.clk(clk), .rst(rst), .hwf_en(hwf_en), .stall_MEM(stall_MEM), .Bi(alpha_values[c]), .x_test(x_test), .x_sv(support_vectors[c]), .hwf_out(hwf_kernel_out[(c*2*XLEN_PIXEL) +: 2*XLEN_PIXEL]), .c(c));
     end
 end endgenerate 
 
@@ -64,7 +63,7 @@ integer row_count;
 
 //Product values for testing 
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/alpha_bin.data",product_arr,0,9);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/alpha_bin.data",product_arr,0,9);
     row_count = 0;
 end
 

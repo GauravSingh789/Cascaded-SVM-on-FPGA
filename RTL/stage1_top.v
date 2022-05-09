@@ -1,16 +1,17 @@
 `timescale 1ns / 1ps
 
-module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 87)
+module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 87, parameter DECISION_FUNCT_SIZE = 56)
 (input clk, rst, en,
+input wire [NUM_OF_PIXELS*XLEN_PIXEL-1:0] x_test,
+output wire [DECISION_FUNCT_SIZE-1:0] decision_funct_out,
 output y_class);
 
 wire re, we, stall_MEM, decision_funct_en;
 // Variables we are storing in BRAM
-wire [XLEN_PIXEL-1:0] sv_load1, sv_load2;
-wire [XLEN_PIXEL-1 :0] x_test; 
+//wire [XLEN_PIXEL-1:0] sv_load1, sv_load2; 
 
 // Instantiate control module
-mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en), .x_test(x_test));
+mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en));
 
 // Load support vectors from RAM
 reg [NUM_OF_PIXELS*XLEN_PIXEL-1:0] support_vectors [NUM_OF_SV-1:0];
@@ -18,7 +19,7 @@ reg [4*XLEN_PIXEL-1:0] kernel_out_arr [NUM_OF_SV-1:0];
 reg [16:0] support_vectors_counter;
 integer i,j;
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/support_vect_bin_edited.data", support_vectors,0,86);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/support_vect_bin_edited.data", support_vectors,0,86);
     support_vectors_counter=17'b0_00000000_00000000;
     //for(i=0;i<NUM_OF_SV-1;i=i+1) begin
     //    $display("support_vectors=%b",support_vectors[i]);
@@ -28,7 +29,7 @@ end
 //Instantiating kernel modules for each support vector
 genvar c;
 generate for(c = 0; c < NUM_OF_SV; c = c + 1) begin
-    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .c(c), .x_test(x_test), .x_sv(support_vectors[c]), .mac_out(kernel_out[(c*5*XLEN_PIXEL) +: 5*XLEN_PIXEL]), .kat(kat_check));//kernel_out_arr[c]));//
+    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .c(c), .x_test(x_test), .x_sv(support_vectors[c]), .mac_out(kernel_out[(c*5*XLEN_PIXEL) +: 5*XLEN_PIXEL]));//kernel_out_arr[c]));//
 end endgenerate 
 
 //Main register containing output from all kernel modules
@@ -51,12 +52,12 @@ always@(posedge clk) begin
     end
 end
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/product_bin.data",product_arr,0,86);
+    $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/product_bin.data",product_arr,0,86);
     row_count = 0;
 end
 
 //RAM_fetch product_fetch(.clk(clk), .re(re), .we(re), .stall_MEM(!decision_funct_en), .data_load(product_load), .data_out(product_out));
 decision_funct decision_funct_module(.clk(clk), .kernel_out(kernel_out), .decision_funct_en(decision_funct_en), 
-            .product(product), .b(b), .y_class(y_class));
+            .product(product), .b(b), .decision_funct_out(decision_funct_out), .y_class(y_class));
 
 endmodule
