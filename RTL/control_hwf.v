@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module mem_control #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10)
+module mem_control_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10)
 (input clk, rst, en,
 output reg re, we, stall_MEM, output reg decision_funct_en,
 //output reg [XLEN_PIXEL-1:0] sv_load1, sv_load2, 

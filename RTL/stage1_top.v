@@ -51,7 +51,7 @@ always@(posedge clk) begin
     end
 end
 initial begin
-    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/alpha_bin.data",product_arr,0,86);
+    $readmemb("D:/Acads/SEMESTERS/Sem 8/FYP - SVM/Verilog implementation/SVM_on_FPGA/SVM_on_FPGA.srcs/sources_1/new/product_bin.data",product_arr,0,86);
     row_count = 0;
 end
 

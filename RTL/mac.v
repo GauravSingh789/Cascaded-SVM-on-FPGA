@@ -31,7 +31,7 @@
           //result  <= c_done ? result : (result + x_test_arr*x_sv[i*XLEN_PIXEL +: XLEN_PIXEL]);
           result = result + x_test_arr*x_sv[i*XLEN_PIXEL +: XLEN_PIXEL];
           end
-          //$display("cat=%d result=%d module_num=%d", kat, result, c);
+          $display("cat=%d result=%d module_num=%d", kat, result, c);
           result = (1 + result)*(1 + result);
           //$display("mac_out=%d c=%d",result, c);
           kat=1;

@@ -13,7 +13,7 @@ b_sign = b[2*XLEN_PIXEL-1];
 a_val = a[2*XLEN_PIXEL-2:0];
 b_val = b[2*XLEN_PIXEL-2:0];
 comp = a_val>b_val;
-$display("comp=%d",comp);
+//$display("comp=%d",comp);
 if(a_sign == 0 && b_sign ==0) begin
     result_temp = comp ? (a_val-b_val) : (b_val - a_val);
     out = {comp, result_temp};
