@@ -29,7 +29,8 @@ end
 else if(a_sign==1 && b_sign==1) begin //-A+B
     result_temp = comp ? (a_val-b_val) : (b_val - a_val);
     out = {comp,result_temp};
-end
+end else
+    out = 0;
 
 end
 

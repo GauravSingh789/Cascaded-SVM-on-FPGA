@@ -2,7 +2,9 @@
 
 module mem_control_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10)
 (input clk, rst, en,
-output reg re, we, stall_MEM, output reg decision_funct_en);
+output reg re, we, stall_MEM, 
+output reg [XLEN_PIXEL-1:0] x_test,
+output reg decision_funct_en);
 
 reg [31:0] comp_count;
 integer i=0;
@@ -13,6 +15,7 @@ initial begin
     comp_count=0;
     stall_MEM =0;
     decision_funct_en=0;
+    x_test=200;
     //sv_load1 = 13;
     //sv_load2 = 17;
 end

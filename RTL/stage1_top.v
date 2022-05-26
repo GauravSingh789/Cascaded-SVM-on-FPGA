@@ -2,8 +2,6 @@
 
 module stage1_top #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 87, parameter DECISION_FUNCT_SIZE = 56)
 (input clk, rst, en,
-input wire [NUM_OF_PIXELS*XLEN_PIXEL-1:0] x_test,
-output wire [DECISION_FUNCT_SIZE-1:0] decision_funct_out,
 output y_class);
 
 wire re, we, stall_MEM, decision_funct_en;
@@ -11,7 +9,7 @@ wire re, we, stall_MEM, decision_funct_en;
 //wire [XLEN_PIXEL-1:0] sv_load1, sv_load2; 
 
 // Instantiate control module
-mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en));
+mem_control mem_control_inst (.clk(clk), .rst (rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .x_test(x_test), .decision_funct_en(decision_funct_en));
 
 // Load support vectors from RAM
 reg [NUM_OF_PIXELS*XLEN_PIXEL-1:0] support_vectors [NUM_OF_SV-1:0];
@@ -29,7 +27,7 @@ end
 //Instantiating kernel modules for each support vector
 genvar c;
 generate for(c = 0; c < NUM_OF_SV; c = c + 1) begin
-    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .c(c), .x_test(x_test), .x_sv(support_vectors[c]), .mac_out(kernel_out[(c*5*XLEN_PIXEL) +: 5*XLEN_PIXEL]));//kernel_out_arr[c]));//
+    dot_prod dspslice1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .x_test(x_test), .x_sv(support_vectors[c]), .mac_out(kernel_out[(c*5*XLEN_PIXEL) +: 5*XLEN_PIXEL]));//kernel_out_arr[c]));//
 end endgenerate 
 
 //Main register containing output from all kernel modules

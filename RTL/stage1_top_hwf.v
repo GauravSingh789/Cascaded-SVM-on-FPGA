@@ -1,22 +1,22 @@
 `timescale 1ns / 1ps
 module stage1_top_hwf #(parameter XLEN_PIXEL = 8, parameter NUM_OF_PIXELS = 784, parameter NUM_OF_SV = 10, parameter DECISION_FUNCT_SIZE = 24)
-(input clk, rst, en, hwf_en,
-input wire [NUM_OF_PIXELS*XLEN_PIXEL-1:0] x_test,
+(input clk, rst, en,
 output y_class);
 
 wire re, we, stall_MEM, decision_funct_en;
+wire [XLEN_PIXEL-1:0] x_test;
 // Instantiate control module
-mem_control_hwf mem_control_inst (.clk(clk), .rst(rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .decision_funct_en(decision_funct_en));
+mem_control_hwf mem_control_inst (.clk(clk), .rst(rst), .en(en), .re(re), .we(we), .stall_MEM(stall_MEM), .x_test(x_test), .decision_funct_en(decision_funct_en));
 
 // -------Hardware Friendly Kernel----------------------------------------
 //Load alpha_values for HWF
 reg [2*XLEN_PIXEL-1:0] alpha_values [NUM_OF_SV-1:0];
 reg [2*XLEN_PIXEL-1:0] Bi; //Bi for HWF compuation
-reg [6:0] alpha_values_counter;
+//reg [6:0] alpha_values_counter;
 
 initial begin
     $readmemb("E:/CURRICULUM/ECE Core/8th sem/FYP/Vivado files/FYP_SVM_on_FPGA/FYP_SVM_on_FPGA.srcs/alpha_hwf_bin.data", alpha_values, 0,9);
-    alpha_values_counter=7'b0000000;
+    //alpha_values_counter=7'b0000000;
 end
 
 /*always @(posedge clk) begin
@@ -40,7 +40,7 @@ genvar c;
 genvar i;
 generate for(c = 0; c < NUM_OF_SV; c = c + 1) begin
     for(i=0;i<NUM_OF_PIXELS;i=i+1) begin
-        hwf_kernel hwf_kernel_inst1(.clk(clk), .rst(rst), .hwf_en(hwf_en), .stall_MEM(stall_MEM), .Bi(alpha_values[c]), .x_test(x_test), .x_sv(support_vectors[c]), .hwf_out(hwf_kernel_out[(c*2*XLEN_PIXEL) +: 2*XLEN_PIXEL]), .c(c));
+        hwf_kernel hwf_kernel_inst1(.clk(clk), .rst(rst), .stall_MEM(stall_MEM), .Bi(alpha_values[c]), .x_test(x_test), .x_sv(support_vectors[c]), .hwf_out(hwf_kernel_out[(c*2*XLEN_PIXEL) +: 2*XLEN_PIXEL]), .c(c));
     end
 end endgenerate 
 
