@@ -5,7 +5,7 @@ using Verilog HDL and tested on Artix-7 FPGA board to perform a binary classific
 
 ![Cascade SVM Training and Classification Flow](Cascade-SVM-Flow.png)
 
-![Gaussian and Hardware-Friendly Kernel](Kernels.png)
+![Gaussian and Hardware-Friendly Kernel](Kernels.PNG)
 
 ## Architecture
 The block diagram of the stage 1 and stage 2 classifier architecture is shown below. The support vectors and test vector are fetched from the Block RAM
@@ -34,9 +34,9 @@ A top module which instantiates and connects all other blocks for stage 1 Polyno
 
 ### Stage 2 Schematic (Hardware-Friendly Kernel)
 stage 2 classifier also included a control unit for controlling memory read and module enable signals, in addition to the Kernel hardware friendly kernel computation block described above. The top module for stage 2 classifier instantiates these and connects them.
-![Stage 2 Classifier block - RTL Schematic obtained in Vivado](stage2_schem.png)
+![Stage 2 Classifier block - RTL Schematic obtained in Vivado](stage_2_schem.PNG)
 
 ### Cascade Schematic
 A top module which instantiates both the stages of the SVM Classifier was written in Verilog. The Stage 1 classifier is instantiated and entire test vector is set
 is passed on to it. Depending on whether the decision function output of stage 1 for each test vector lies within the Ccn and Ccp thresholds, the signal `hwf en` is set to high, enabling the stage 2 hardware-friendly kernel for that particular test vector.
-![Cascade Classifier - Top Module](cascade_svm_schem.png)
+![Cascade Classifier - Top Module](cascade_svm_schem.PNG)
