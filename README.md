@@ -53,6 +53,6 @@ stage 2 classifier also included a control unit for controlling memory read and 
 
 ### Cascade Schematic
 A top module which instantiates both the stages of the SVM Classifier was written in Verilog. The Stage 1 classifier is instantiated and entire test vector is set
-is passed on to it. Depending on whether the decision function output of stage 1 for each test vector lies within the Ccn and Ccp thresholds, the signal `hwf en` is set to high, enabling the stage 2 hardware-friendly kernel for that particular test vector.
+is passed on to it. Depending on whether the decision function output of stage 1 for each test vector lies within the Ccn and Ccp thresholds, the signal `hwf_en` is set to high, enabling the stage 2 hardware-friendly kernel for that particular test vector.
 ![Cascade Classifier - Top Module](cascade_svm_schem.PNG) </br>
 <b> Fig - Cascade Classifier - Top Module </b>
