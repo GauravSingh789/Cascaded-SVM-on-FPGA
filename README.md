@@ -3,8 +3,10 @@
 In this work, a Cascaded Support Vector Machine (SVM) classifier was designed
 using Verilog HDL and tested on Artix-7 FPGA board to perform a binary classification of digits (either zero or one). A polynomial kernel was used in the first stage of the classifier and a hardware efficient alternative of the Gaussian Kernel, called the hardware-friendly kernel wasused in the second stage. Accuracy obtained using the hardware friendly kernel in Cascade was comparable to that obtained in existing implementations using the Gaussian kernel in Cascade. An accuracy of 98.83% was obtained on our Cascade SVM, which is higher than the accuracy offered by the Polynomial and Hardware-friendly kernels individually.
 
+<p align = "center"> 
 ![Cascade SVM Training and Classification Flow](Cascade-SVM-Flow.png)
-<b> Cascade SVM Training and Classification Flow </b>
+<b> Cascade SVM Training and Classification Flow </b> 
+</p>
 
 ![Gaussian and Hardware-Friendly Kernel](Kernels.PNG)
 <b> Gaussian and Hardware-Friendly Kernel </b>
